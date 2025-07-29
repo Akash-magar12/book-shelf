@@ -32,6 +32,13 @@ interface FirestoreUser {
   email: string;
   createdAt: FieldValue;
 }
+interface GoogleFirestoreUser {
+  uid: string;
+  name: string;
+  email: string;
+  createdAt: FieldValue;
+  photoURL: string;
+}
 const Signup = () => {
   const [form, setForm] = useState<SignupFormData>({
     name: "",
@@ -87,9 +94,16 @@ const Signup = () => {
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
-      // navigate("/home");
-
-      console.log(result, user);
+      if (user) {
+        const userData: GoogleFirestoreUser = {
+          uid: user.uid,
+          name: user.displayName,
+          email: user.email,
+          photoURL: user.photoURL,
+          createdAt: serverTimestamp(),
+        };
+        await setDoc(doc(db, "users", user.uid), userData, { merge: true });
+      }
     } catch (error) {
       console.log(error);
     }
