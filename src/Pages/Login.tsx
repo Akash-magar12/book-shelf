@@ -10,9 +10,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { auth } from "@/firebase/firebase";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
+import { provider } from "../firebase/firebase";
 
 type LoginFormData = {
   email: string;
@@ -23,6 +25,8 @@ const Login = () => {
     email: "",
     password: "",
   });
+  const [showPassword, setShowPassword] = useState<boolean>(false); // 👈 toggle state
+
   const navigate = useNavigate();
   const [loading, setLoading] = useState<boolean>(false);
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -53,6 +57,16 @@ const Login = () => {
     }
   };
 
+  const handleGoogle = async () => {
+    try {
+      const result = await signInWithPopup(auth, provider);
+      console.log(result);
+     
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-gray-100 dark:bg-gray-900">
       <Card className="w-full max-w-sm shadow-md">
@@ -79,26 +93,41 @@ const Login = () => {
               />
             </div>
 
-            <div>
-              <div className="flex justify-between items-center">
+            <div className="relative">
+              <div className="flex justify-between items-center mb-1">
                 <Label htmlFor="password">Password</Label>
-                <span className="text-sm text-blue-500 hover:underline">
+                <span className="text-sm text-blue-500 hover:underline cursor-pointer">
                   Forgot password?
                 </span>
               </div>
+
               <Input
                 value={form.password}
                 name="password"
                 id="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 required
                 onChange={handleChange}
-                className="mt-2"
+                className="mt-2 pr-10"
               />
+
+              <span
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-[38px] cursor-pointer text-gray-500 dark:text-gray-400"
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </span>
             </div>
 
             <Button disabled={loading} type="submit" className="w-full">
               {loading ? "Login..." : "Login"}
+            </Button>
+            <Button
+              onClick={handleGoogle}
+              variant="outline"
+              className="h-11 border-gray-200 w-full dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+            >
+              Google
             </Button>
           </form>
         </CardContent>

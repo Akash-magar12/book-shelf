@@ -9,21 +9,36 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { auth } from "@/firebase/firebase";
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { FieldValue, serverTimestamp } from "firebase/firestore";
+import { auth, db } from "@/firebase/firebase";
+import {
+  createUserWithEmailAndPassword,
+  signInWithPopup,
+  updateProfile,
+} from "firebase/auth";
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
+import { provider } from "../firebase/firebase";
+import { doc, setDoc } from "firebase/firestore";
 type SignupFormData = {
   name: string;
   email: string;
   password: string;
 };
+interface FirestoreUser {
+  uid: string;
+  name: string;
+  email: string;
+  createdAt: FieldValue;
+}
 const Signup = () => {
   const [form, setForm] = useState<SignupFormData>({
     name: "",
     email: "",
     password: "",
   });
+  const [showPassword, setShowPassword] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const navigate = useNavigate();
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,21 +55,43 @@ const Signup = () => {
         form.email,
         form.password
       );
+      const user = userCredential.user;
+
       await updateProfile(userCredential.user, {
         displayName: form.name,
       });
+      if (user) {
+        const userData: FirestoreUser = {
+          uid: user.uid,
+          name: form.name,
+          email: form.email,
+          createdAt: serverTimestamp(),
+        };
+        await setDoc(doc(db, "users", user.uid), userData);
+      }
       setForm({
         name: "",
         email: "",
         password: "",
       });
-      const user = userCredential.user;
       navigate("/home");
       console.log(user);
     } catch (error) {
       console.log(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogle = async () => {
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      // navigate("/home");
+
+      console.log(result, user);
+    } catch (error) {
+      console.log(error);
     }
   };
   return (
@@ -98,28 +135,37 @@ const Signup = () => {
               />
             </div>
 
-            <div>
-              <div className="flex justify-between items-center">
+            <div className="relative">
+              <div className="flex justify-between items-center mb-1">
                 <Label htmlFor="password">Password</Label>
-                <span className="text-sm text-blue-500 hover:underline">
+                <span className="text-sm text-blue-500 hover:underline cursor-pointer">
                   Forgot password?
                 </span>
               </div>
+
               <Input
                 name="password"
                 id="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 required
                 value={form.password}
-                className="mt-2"
+                className="pr-10"
                 onChange={handleChange}
               />
+
+              <span
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-[38px] cursor-pointer text-gray-500 dark:text-gray-400"
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </span>
             </div>
 
             <Button disabled={loading} type="submit" className="w-full">
               {loading ? "Signing up..." : "Sign Up"}
             </Button>
             <Button
+              onClick={handleGoogle}
               variant="outline"
               className="h-11 border-gray-200 w-full dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
             >
