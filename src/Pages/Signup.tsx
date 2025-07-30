@@ -1,3 +1,4 @@
+// UI components from your custom UI library
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -9,29 +10,51 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FieldValue, serverTimestamp } from "firebase/firestore";
+
+// Firestore timestamp and document tools
+import { FieldValue, getDoc, serverTimestamp } from "firebase/firestore";
+
+// Firebase app setup (auth & firestore instances)
 import { auth, db } from "@/firebase/firebase";
+
+// Firebase Auth functions
 import {
   createUserWithEmailAndPassword,
   signInWithPopup,
   updateProfile,
 } from "firebase/auth";
+
+// React and routing tools
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+
+// Icons
 import { Eye, EyeOff } from "lucide-react";
+
+// Google auth provider
 import { provider } from "../firebase/firebase";
+
+// Firestore document manipulation
 import { doc, setDoc } from "firebase/firestore";
+
+// ---------- Type Definitions ----------
+
+// For manual sign-up (email/password)
 type SignupFormData = {
   name: string;
   email: string;
   password: string;
 };
+
+// For email/password users stored in Firestore
 interface FirestoreUser {
   uid: string;
   name: string;
   email: string;
   createdAt: FieldValue;
 }
+
+// For Google users stored in Firestore
 interface GoogleFirestoreUser {
   uid: string;
   name: string;
@@ -39,75 +62,109 @@ interface GoogleFirestoreUser {
   createdAt: FieldValue;
   photoURL: string;
 }
+
+// ---------- Component ----------
+
 const Signup = () => {
+  // Form state
   const [form, setForm] = useState<SignupFormData>({
     name: "",
     email: "",
     password: "",
   });
+
+  // Toggle password visibility
   const [showPassword, setShowPassword] = useState<boolean>(false);
+
+  // Show loading state on form submission
   const [loading, setLoading] = useState<boolean>(false);
+
+  // React Router navigation
   const navigate = useNavigate();
+
+  // Handle input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value, name } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  // ---------- Handle Manual Signup ----------
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
+
     try {
+      // 1. Create user in Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         form.email,
         form.password
       );
+
       const user = userCredential.user;
 
-      await updateProfile(userCredential.user, {
+      // 2. Set display name in Firebase Auth profile
+      await updateProfile(user, {
         displayName: form.name,
       });
-      if (user) {
-        const userData: FirestoreUser = {
-          uid: user.uid,
-          name: form.name,
-          email: form.email,
-          createdAt: serverTimestamp(),
-        };
-        await setDoc(doc(db, "users", user.uid), userData);
-      }
-      setForm({
-        name: "",
-        email: "",
-        password: "",
-      });
+
+      // 3. Save user info in Firestore
+      const userData: FirestoreUser = {
+        uid: user.uid,
+        name: form.name,
+        email: form.email,
+        createdAt: serverTimestamp(),
+      };
+
+      await setDoc(doc(db, "users", user.uid), userData);
+
+      // 4. Clear form and redirect
+      setForm({ name: "", email: "", password: "" });
       navigate("/home");
       console.log(user);
     } catch (error) {
-      console.log(error);
+      console.log(error); // TODO: Show user-friendly error message
     } finally {
       setLoading(false);
     }
   };
 
+  // ---------- Handle Google Signin ----------
   const handleGoogle = async () => {
     try {
+      // 1. Show Google popup
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
-      if (user) {
+
+      // 2. Reference the user document
+      const userRef = doc(db, "users", user.uid);
+
+      // 3. Check if user already exists
+      const userSnap = await getDoc(userRef);
+
+      if (!userSnap.exists()) {
+        // 4. If not, store user info
         const userData: GoogleFirestoreUser = {
-          uid: user.uid,
-          name: user.displayName,
-          email: user.email,
-          photoURL: user.photoURL,
+          uid: user.uid ?? "",
+          name: user.displayName ?? "",
+          email: user.email ?? "",
+          photoURL: user.photoURL ?? "",
           createdAt: serverTimestamp(),
         };
-        await setDoc(doc(db, "users", user.uid), userData, { merge: true });
+
+        await setDoc(userRef, userData);
+        navigate("/home");
+      } else {
+        console.log(
+          "This email is already used with another login method. Try logging in with that method."
+        );
       }
     } catch (error) {
-      console.log(error);
+      console.log(error); // TODO: Handle error (like email exists with different method)
     }
   };
+
+  // ---------- UI ----------
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-gray-100 dark:bg-gray-900">
       <Card className="w-full max-w-sm shadow-md">
@@ -122,6 +179,7 @@ const Signup = () => {
 
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-8">
+            {/* Name Field */}
             <div>
               <Label htmlFor="name">Name</Label>
               <Input
@@ -135,6 +193,8 @@ const Signup = () => {
                 onChange={handleChange}
               />
             </div>
+
+            {/* Email Field */}
             <div>
               <Label htmlFor="email">Email</Label>
               <Input
@@ -149,6 +209,7 @@ const Signup = () => {
               />
             </div>
 
+            {/* Password Field with Toggle */}
             <div className="relative">
               <div className="flex justify-between items-center mb-1">
                 <Label htmlFor="password">Password</Label>
@@ -167,6 +228,7 @@ const Signup = () => {
                 onChange={handleChange}
               />
 
+              {/* Toggle Eye Icon */}
               <span
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-[38px] cursor-pointer text-gray-500 dark:text-gray-400"
@@ -175,9 +237,12 @@ const Signup = () => {
               </span>
             </div>
 
+            {/* Submit Button */}
             <Button disabled={loading} type="submit" className="w-full">
               {loading ? "Signing up..." : "Sign Up"}
             </Button>
+
+            {/* Google Sign In */}
             <Button
               onClick={handleGoogle}
               variant="outline"
@@ -188,6 +253,7 @@ const Signup = () => {
           </form>
         </CardContent>
 
+        {/* Footer with Link to Login */}
         <CardFooter className="flex flex-col gap-2">
           <p className="text-sm text-muted-foreground text-center">
             Already have an account?{" "}

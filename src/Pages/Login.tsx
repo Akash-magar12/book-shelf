@@ -9,12 +9,13 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { auth } from "@/firebase/firebase";
+import { auth, db } from "@/firebase/firebase";
 import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { provider } from "../firebase/firebase";
+import { doc, getDoc } from "firebase/firestore";
 
 type LoginFormData = {
   email: string;
@@ -60,8 +61,14 @@ const Login = () => {
   const handleGoogle = async () => {
     try {
       const result = await signInWithPopup(auth, provider);
-      console.log(result);
-     
+      const user = result.user;
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+      if (userSnap.exists()) {
+        navigate("/home");
+      } else {
+        console.log("register");
+      }
     } catch (error) {
       console.log(error);
     }
