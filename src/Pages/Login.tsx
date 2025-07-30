@@ -48,8 +48,8 @@ const Login = () => {
         email: "",
         password: "",
       });
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const user = userCredential.user;
-      console.log(user);
       navigate("/home");
     } catch (error) {
       console.log(error);
