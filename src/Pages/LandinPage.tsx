@@ -1,3 +1,4 @@
+import BestSellers from "@/components/BestSellers";
 import Features from "@/components/Features";
 import Footer from "@/components/Footer";
 import Hero from "@/components/Hero";
@@ -9,6 +10,7 @@ const LandingPage = () => {
       <Navbar />
       <Hero />
       <Features />
+      <BestSellers />
       <Footer />
     </div>
   );
