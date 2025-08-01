@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   Card,
   CardHeader,
@@ -13,7 +13,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BookOpen } from "lucide-react";
-import { getAuth } from "firebase/auth";
+import { onAuthStateChanged, User } from "firebase/auth";
+import { auth } from "@/firebase/firebase";
+import toast from "react-hot-toast";
 
 interface Book {
   volumeInfo: {
@@ -38,8 +40,8 @@ const BookDetails = () => {
   const { id } = useParams();
   const [book, setBook] = useState<Book | null>(null);
   const [loading, setLoading] = useState(true);
-  const auth = getAuth();
-  console.log(auth.currentUser);
+  const [user, setUser] = useState<User | null>(null);
+  const navigate = useNavigate();
   const fetchBookDetails = async () => {
     try {
       const response = await axios.get(
@@ -54,7 +56,13 @@ const BookDetails = () => {
       setLoading(false);
     }
   };
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
 
+    return () => unsubscribe();
+  }, []);
   useEffect(() => {
     fetchBookDetails();
   }, []);
@@ -71,6 +79,15 @@ const BookDetails = () => {
       </div>
     );
   }
+
+  const handleCart = () => {
+    if (!user) {
+      toast.error("Please login to add to cart");
+      navigate("/login");
+    } else {
+      navigate("/cart");
+    }
+  };
 
   if (!book) {
     return (
@@ -129,7 +146,7 @@ const BookDetails = () => {
 
         <CardFooter className="flex justify-end">
           {hasPrice && (
-            <Button variant="default" className="gap-2">
+            <Button onClick={handleCart} variant="default" className="gap-2">
               <BookOpen size={18} />
               Buy Now
             </Button>

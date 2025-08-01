@@ -36,6 +36,7 @@ import { provider } from "../firebase/firebase";
 
 // Firestore document manipulation
 import { doc, setDoc } from "firebase/firestore";
+import toast from "react-hot-toast";
 
 // ---------- Type Definitions ----------
 
@@ -120,6 +121,8 @@ const Signup = () => {
 
       // 4. Clear form and redirect
       setForm({ name: "", email: "", password: "" });
+      toast.success("Signup successfull");
+
       navigate("/home");
       console.log(user);
     } catch (error) {
@@ -153,7 +156,9 @@ const Signup = () => {
         };
 
         await setDoc(userRef, userData);
-        navigate("/home");
+        toast.success("Signup successfull");
+
+        navigate("/");
       } else {
         console.log(
           "This email is already used with another login method. Try logging in with that method."
@@ -257,7 +262,7 @@ const Signup = () => {
         <CardFooter className="flex flex-col gap-2">
           <p className="text-sm text-muted-foreground text-center">
             Already have an account?{" "}
-            <Link to="login" className="text-blue-500 hover:underline">
+            <Link to="/login" className="text-blue-500 hover:underline">
               Log In
             </Link>
           </p>

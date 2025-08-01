@@ -16,6 +16,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { provider } from "../firebase/firebase";
 import { doc, getDoc } from "firebase/firestore";
+import toast from "react-hot-toast";
 
 type LoginFormData = {
   email: string;
@@ -50,7 +51,8 @@ const Login = () => {
       });
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const user = userCredential.user;
-      navigate("/home");
+      toast.success("login successfull");
+      navigate("/");
     } catch (error) {
       console.log(error);
     } finally {
@@ -65,6 +67,8 @@ const Login = () => {
       const userRef = doc(db, "users", user.uid);
       const userSnap = await getDoc(userRef);
       if (userSnap.exists()) {
+        toast.success("login successfull");
+
         navigate("/home");
       } else {
         console.log("register");
@@ -142,7 +146,7 @@ const Login = () => {
         <CardFooter className="flex flex-col gap-2">
           <p className="text-sm text-muted-foreground text-center">
             Don’t have an account?{" "}
-            <Link to="/" className="text-blue-500 hover:underline">
+            <Link to="/signup" className="text-blue-500 hover:underline">
               Sign up
             </Link>
           </p>
