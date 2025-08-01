@@ -14,10 +14,13 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BookOpen } from "lucide-react";
 import { onAuthStateChanged, User } from "firebase/auth";
-import { auth } from "@/firebase/firebase";
+import { auth, db } from "@/firebase/firebase";
 import toast from "react-hot-toast";
+import { addDoc, collection } from "firebase/firestore";
 
+// 🧾 Define Book interface
 interface Book {
+  id: string;
   volumeInfo: {
     title: string;
     authors?: string[];
@@ -37,11 +40,12 @@ interface Book {
 }
 
 const BookDetails = () => {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const [book, setBook] = useState<Book | null>(null);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
+
   const fetchBookDetails = async () => {
     try {
       const response = await axios.get(
@@ -56,16 +60,41 @@ const BookDetails = () => {
       setLoading(false);
     }
   };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
     });
-
     return () => unsubscribe();
   }, []);
+
   useEffect(() => {
     fetchBookDetails();
   }, []);
+
+  const handleCart = async (book: Book) => {
+    if (!user) {
+      toast.error("Please login to add to cart");
+      navigate("/login");
+      return;
+    }
+
+    try {
+      await addDoc(collection(db, "carts"), {
+        userId: user.uid,
+        bookId: book.id,
+        title: book.volumeInfo.title,
+        thumbnail: book.volumeInfo.imageLinks?.thumbnail || "",
+        quantity: 1,
+        price: book.saleInfo?.retailPrice?.amount || 0,
+        addedAt: new Date(),
+      });
+      toast.success("Added to cart!");
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      toast.error("Failed to add to cart");
+    }
+  };
 
   if (loading) {
     return (
@@ -79,15 +108,6 @@ const BookDetails = () => {
       </div>
     );
   }
-
-  const handleCart = () => {
-    if (!user) {
-      toast.error("Please login to add to cart");
-      navigate("/login");
-    } else {
-      navigate("/cart");
-    }
-  };
 
   if (!book) {
     return (
@@ -146,7 +166,11 @@ const BookDetails = () => {
 
         <CardFooter className="flex justify-end">
           {hasPrice && (
-            <Button onClick={handleCart} variant="default" className="gap-2">
+            <Button
+              onClick={() => handleCart(book)}
+              variant="default"
+              className="gap-2"
+            >
               <BookOpen size={18} />
               Buy Now
             </Button>

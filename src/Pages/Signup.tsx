@@ -160,8 +160,8 @@ const Signup = () => {
 
         navigate("/");
       } else {
-        console.log(
-          "This email is already used with another login method. Try logging in with that method."
+        toast.error(
+          "This email is already used with another login method."
         );
       }
     } catch (error) {

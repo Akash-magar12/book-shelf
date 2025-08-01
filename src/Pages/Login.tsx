@@ -10,7 +10,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { auth, db } from "@/firebase/firebase";
-import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
+import {
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signOut,
+} from "firebase/auth";
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
@@ -51,10 +55,11 @@ const Login = () => {
       });
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const user = userCredential.user;
-      toast.success("login successfull");
+      toast.success("Login successful");
       navigate("/");
     } catch (error) {
       console.log(error);
+      toast.error("Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -62,19 +67,34 @@ const Login = () => {
 
   const handleGoogle = async () => {
     try {
+      // Step 1: Sign in with Google
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
+
+      // Step 2: Check Firestore for user profile
       const userRef = doc(db, "users", user.uid);
       const userSnap = await getDoc(userRef);
-      if (userSnap.exists()) {
-        toast.success("login successfull");
 
-        navigate("/home");
+      if (userSnap.exists()) {
+        // Step 3: User exists in Firestore - allow login
+        toast.success("Login successful");
+        navigate("/");
       } else {
-        console.log("register");
+        // Step 4: User not found in Firestore - block access
+        toast.error("Account not found. Please sign up first.");
+
+        // Optional: Delete user from Firebase Auth (client-side only works right after login)
+        try {
+          await user.delete(); // This only works immediately after login
+        } catch (deleteError) {
+          console.log(deleteError);
+        }
+
+        await signOut(auth);
       }
     } catch (error) {
-      console.log(error);
+      console.error("Google Sign-In error:", error);
+      toast.error("Something went wrong during Google Sign-In");
     }
   };
 
