@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { BookOpen, LogIn, UserPlus, LogOut, Menu, X } from "lucide-react";
+import { BookOpen, LogIn, UserPlus, LogOut, Menu, X, ShoppingCart } from "lucide-react";
 import { Button } from "./ui/button";
 import { onAuthStateChanged, signOut, User } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
@@ -23,7 +23,7 @@ const Navbar = () => {
     try {
       await signOut(auth);
       setUser(null);
-      toast.success("logout successfull");
+      toast.success("Logout successful");
       navigate("/login");
     } catch (error) {
       console.error("Logout error:", error);
@@ -39,6 +39,14 @@ const Navbar = () => {
 
         {/* Desktop */}
         <div className="hidden sm:flex items-center gap-4">
+          <Button
+            variant="ghost"
+            onClick={() => navigate("/cart")}
+            className="flex items-center gap-2"
+          >
+            <ShoppingCart size={20} /> Cart
+          </Button>
+
           {user ? (
             <Button
               variant="outline"
@@ -82,6 +90,14 @@ const Navbar = () => {
       {/* Mobile Menu */}
       {isOpen && (
         <div className="sm:hidden px-4 pb-4 space-y-2">
+          <Button
+            variant="ghost"
+            className="w-full flex items-center gap-2"
+            onClick={() => navigate("/cart")}
+          >
+            <ShoppingCart size={20} /> Cart
+          </Button>
+
           {user ? (
             <Button
               variant="outline"
