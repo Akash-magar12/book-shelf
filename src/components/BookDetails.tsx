@@ -16,7 +16,7 @@ import { BookOpen } from "lucide-react";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth, db } from "@/firebase/firebase";
 import toast from "react-hot-toast";
-import { addDoc, collection } from "firebase/firestore";
+import { addDoc, collection, doc, getDocs, query, updateDoc, where } from "firebase/firestore";
 
 // 🧾 Define Book interface
 interface Book {
@@ -80,19 +80,44 @@ const BookDetails = () => {
     }
 
     try {
-      await addDoc(collection(db, "carts"), {
-        userId: user.uid,
-        bookId: book.id,
-        title: book.volumeInfo.title,
-        thumbnail: book.volumeInfo.imageLinks?.thumbnail || "",
-        quantity: 1,
-        price: book.saleInfo?.retailPrice?.amount || 0,
-        addedAt: new Date(),
-      });
-      toast.success("Added to cart!");
+      const cartRef = collection(db, "carts");
+
+      // 1️⃣ Query if this user already has this book in cart
+      const q = query(
+        cartRef,
+        where("userId", "==", user.uid),
+        where("bookId", "==", book.id)
+      );
+
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        // 2️⃣ Book already exists in cart → update quantity
+        const cartDoc = querySnapshot.docs[0];
+        const existingQuantity = cartDoc.data().quantity || 1;
+
+        await updateDoc(doc(db, "carts", cartDoc.id), {
+          quantity: existingQuantity + 1,
+        });
+
+        toast.success("Increased quantity in cart!");
+      } else {
+        // 3️⃣ Book not in cart → add new entry
+        await addDoc(cartRef, {
+          userId: user.uid,
+          bookId: book.id,
+          title: book.volumeInfo.title,
+          thumbnail: book.volumeInfo.imageLinks?.thumbnail || "",
+          quantity: 1,
+          price: book.saleInfo?.retailPrice?.amount || 0,
+          addedAt: new Date(),
+        });
+
+        toast.success("Added to cart!");
+      }
     } catch (error) {
-      console.error("Error adding to cart:", error);
-      toast.error("Failed to add to cart");
+      console.error("Error adding/updating cart:", error);
+      toast.error("Failed to update cart");
     }
   };
 
@@ -152,7 +177,7 @@ const BookDetails = () => {
             {hasPrice && (
               <div className="text-lg font-semibold text-green-600">
                 {saleInfo.retailPrice?.currencyCode}{" "}
-                {saleInfo.retailPrice?.amount}
+                {saleInfo.retailPrice?.amount.toFixed()}
               </div>
             )}
           </div>
@@ -172,7 +197,7 @@ const BookDetails = () => {
               className="gap-2"
             >
               <BookOpen size={18} />
-              Buy Now
+              Add to cart
             </Button>
           )}
         </CardFooter>

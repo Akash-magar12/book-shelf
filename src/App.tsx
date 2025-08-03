@@ -7,6 +7,7 @@ import MainLayout from "./Pages/MainLayout";
 import LandingPage from "./Pages/LandinPage";
 import AddToCart from "./components/AddToCart";
 import { Toaster } from "react-hot-toast";
+import Explore from "./Pages/Explore";
 
 const router = createBrowserRouter([
   {
@@ -22,6 +23,7 @@ const router = createBrowserRouter([
         element: <BookDetails />,
       },
       { path: "cart", element: <AddToCart /> },
+      { path: "explore", element: <Explore /> },
     ],
   },
   {

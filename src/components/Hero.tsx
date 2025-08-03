@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
 
 const Hero = () => {
@@ -11,7 +12,9 @@ const Hero = () => {
         favorites, review books, and connect with other readers.
       </p>
       <div className="flex gap-4">
-        <Button variant="default">Get Started</Button>
+        <Link to="/explore">
+          <Button variant="default">Get Started</Button>
+        </Link>
         <Button variant="outline">Learn More</Button>
       </div>
     </section>
