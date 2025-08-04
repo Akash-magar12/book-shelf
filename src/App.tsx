@@ -8,6 +8,7 @@ import LandingPage from "./Pages/LandinPage";
 import AddToCart from "./components/AddToCart";
 import { Toaster } from "react-hot-toast";
 import Explore from "./Pages/Explore";
+import Search from "./Pages/Search";
 
 const router = createBrowserRouter([
   {
@@ -24,6 +25,7 @@ const router = createBrowserRouter([
       },
       { path: "cart", element: <AddToCart /> },
       { path: "explore", element: <Explore /> },
+      { path: "search", element: <Search /> },
     ],
   },
   {

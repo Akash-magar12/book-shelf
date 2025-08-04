@@ -13,9 +13,13 @@ const Hero = () => {
       </p>
       <div className="flex gap-4">
         <Link to="/explore">
-          <Button variant="default">Get Started</Button>
+          <Button className="cursor-pointer" variant="default">
+            Get Started
+          </Button>
         </Link>
-        <Button variant="outline">Learn More</Button>
+        <Button className="cursor-pointer" variant="outline">
+          Learn More
+        </Button>
       </div>
     </section>
   );

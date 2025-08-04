@@ -16,7 +16,15 @@ import { BookOpen } from "lucide-react";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth, db } from "@/firebase/firebase";
 import toast from "react-hot-toast";
-import { addDoc, collection, doc, getDocs, query, updateDoc, where } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  doc,
+  getDocs,
+  query,
+  updateDoc,
+  where,
+} from "firebase/firestore";
 
 // 🧾 Define Book interface
 interface Book {
@@ -45,7 +53,6 @@ const BookDetails = () => {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
-
   const fetchBookDetails = async () => {
     try {
       const response = await axios.get(

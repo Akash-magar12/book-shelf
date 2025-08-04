@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
-import axios from "axios";
+import { SearchIcon } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "react-router-dom";
-import { Badge } from "@/components/ui/badge";
-
-const categories = ["Fiction", "Science", "Romance", "Mystery", "Technology"];
+import axios from "axios";
 
 interface Book {
   id: string;
@@ -28,42 +28,50 @@ interface Book {
   };
 }
 
-const Explore = () => {
-  const [selectedCategory, setSelectedCategory] = useState("Fiction");
-  const [books, setBooks] = useState<Book[]>([]); // ✅ should be Book[]
-
-  const fetchBooks = async (category: string) => {
-    try {
-      const res = await axios.get(
-        `https://www.googleapis.com/books/v1/volumes?q=subject:${category}&maxResults=20`
-      );
-      setBooks(res.data.items || []); // add fallback in case API doesn't return items
-    } catch (err) {
-      console.error("Failed to fetch books:", err);
-    }
+const SearchBar = () => {
+  const [query, setQuery] = useState<string>("");
+  const [books, setBooks] = useState<Book[]>([]);
+  const [startIndex, setStartIndex] = useState<number>(0);
+  const fetchBooks = async () => {
+    if (!query) return;
+    const res = await axios.get(
+      `https://www.googleapis.com/books/v1/volumes?q=${query}&startIndex=${startIndex}&maxResults=10`
+    );
+    setBooks(res.data.items || []);
   };
 
+  // Fetch books when pagination or query changes
   useEffect(() => {
-    fetchBooks(selectedCategory);
-  }, [selectedCategory]);
+    fetchBooks();
+  }, [startIndex]);
 
   return (
     <div className="p-6">
-      {/* Category Buttons */}
-      <div className="flex flex-wrap gap-4 mb-8 justify-center">
-        {categories.map((cat) => (
+      {/* Search Bar */}
+      <div className="flex justify-center w-full">
+        <div className="relative w-full max-w-sm">
+          <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            type="text"
+            placeholder="Search books..."
+            className="pl-10 pr-24"
+          />
           <Button
-            key={cat}
-            variant={selectedCategory === cat ? "default" : "outline"}
-            onClick={() => setSelectedCategory(cat)}
+            onClick={() => {
+              setStartIndex(0); // reset to first page
+              fetchBooks();
+            }}
+            className="absolute right-1 top-1/2 transform -translate-y-1/2 px-4 py-2 text-sm"
           >
-            {cat}
+            Search
           </Button>
-        ))}
+        </div>
       </div>
 
-      {/* Book Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 px-12 md:grid-cols-3 xl:grid-cols-4 gap-6">
+      {/* Results */}
+      <div className="grid grid-cols-1 mt-10 sm:grid-cols-2 px-12 md:grid-cols-3 xl:grid-cols-4 gap-6">
         {books.map((book) => {
           const info = book.volumeInfo;
           const sale = book.saleInfo;
@@ -91,7 +99,6 @@ const Explore = () => {
                       ((e.target as HTMLImageElement).src = "/placeholder.svg")
                     }
                   />
-
                   <div>
                     <h3 className="text-lg font-semibold line-clamp-2">
                       {info.title}
@@ -103,7 +110,6 @@ const Explore = () => {
                       Published: {info.publishedDate || "N/A"}
                     </p>
                   </div>
-
                   <div className="flex items-center justify-between">
                     <Badge
                       variant={
@@ -124,8 +130,27 @@ const Explore = () => {
           );
         })}
       </div>
+
+      {/* Pagination */}
+      {books.length > 0 && (
+        <div className="flex justify-center gap-4 mt-8">
+          <Button
+            variant="outline"
+            disabled={startIndex === 0}
+            onClick={() => setStartIndex((prev) => Math.max(prev - 10, 0))}
+          >
+            Previous
+          </Button>
+          <Button
+            variant="default"
+            onClick={() => setStartIndex((prev) => prev + 10)}
+          >
+            Next
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
 
-export default Explore;
+export default SearchBar;

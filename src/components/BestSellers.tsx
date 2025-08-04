@@ -57,9 +57,10 @@ const BestSellers = () => {
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
+      <h2 className="text-center text-3xl text-bold mb-4">Best Sellers</h2>
 
       {/* Grid of Books */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 px-12 md:grid-cols-3 xl:grid-cols-4 gap-6">
         {books.map((book) => {
           const info = book.volumeInfo;
           const sale = book.saleInfo;

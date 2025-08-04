@@ -7,6 +7,7 @@ import {
   Menu,
   X,
   ShoppingCart,
+  Search,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { onAuthStateChanged, signOut, User } from "firebase/auth";
@@ -14,6 +15,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { auth } from "@/firebase/firebase";
 import toast from "react-hot-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
+// ...imports remain unchanged
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -24,7 +27,6 @@ const Navbar = () => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
     });
-
     return () => unsubscribe();
   }, []);
 
@@ -60,21 +62,34 @@ const Navbar = () => {
               <Button
                 variant="ghost"
                 onClick={() => navigate("/cart")}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 cursor-pointer"
               >
                 <ShoppingCart size={20} /> Cart
               </Button>
 
-              <Avatar>
-                <AvatarImage src={user.photoURL ?? ""} alt="User Avatar" />
-                <AvatarFallback>{getUserInitial()}</AvatarFallback>
+              <Button variant="ghost" asChild className="cursor-pointer">
+                <Link to="/search" className="flex items-center gap-2">
+                  <Search size={18} /> Search
+                </Link>
+              </Button>
+
+              <Avatar className="h-10 w-10">
+                <AvatarImage
+                  src={user?.photoURL || undefined}
+                  alt="User Avatar"
+                  className="h-full w-full object-cover"
+                  referrerPolicy="no-referrer"
+                />
+                <AvatarFallback className="bg-black text-white font-semibold">
+                  {getUserInitial()}
+                </AvatarFallback>
               </Avatar>
             </>
           )}
           {user ? (
             <Button
               variant="outline"
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 cursor-pointer"
               onClick={handleLogout}
             >
               <LogOut size={18} /> Logout
@@ -83,14 +98,14 @@ const Navbar = () => {
             <>
               <Button
                 variant="outline"
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 cursor-pointer"
                 onClick={() => navigate("/login")}
               >
                 <LogIn size={18} /> Log In
               </Button>
               <Button
                 variant="default"
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 cursor-pointer"
                 onClick={() => navigate("/signup")}
               >
                 <UserPlus size={18} /> Sign Up
@@ -101,11 +116,24 @@ const Navbar = () => {
 
         {/* Mobile Toggle */}
         {user && (
-          <div className="sm:hidden">
+          <div className="sm:hidden flex">
+            <div className="flex items-center gap-2">
+              <Avatar>
+                <AvatarImage
+                  src={user.photoURL || undefined}
+                  alt="User Avatar"
+                  referrerPolicy="no-referrer"
+                />
+                <AvatarFallback className="bg-black text-white">
+                  {getUserInitial()}
+                </AvatarFallback>
+              </Avatar>
+            </div>
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setIsOpen(!isOpen)}
+              className="cursor-pointer"
             >
               {isOpen ? <X size={20} /> : <Menu size={20} />}
             </Button>
@@ -120,26 +148,23 @@ const Navbar = () => {
             <>
               <Button
                 variant="ghost"
-                className="w-full flex items-center gap-2"
+                className="w-full flex items-center gap-2 cursor-pointer"
                 onClick={() => navigate("/cart")}
               >
                 <ShoppingCart size={20} /> Cart
               </Button>
-              <div className="flex items-center gap-2">
-                <Avatar>
-                  <AvatarImage src={user.photoURL ?? ""} alt="User Avatar" />
-                  <AvatarFallback>{getUserInitial()}</AvatarFallback>
-                </Avatar>
-                <span className="text-sm font-medium">
-                  {user.displayName ?? user.email}
-                </span>
-              </div>
+
+              <Button variant="ghost" asChild className="w-full cursor-pointer">
+                <Link to="/search" className="w-full flex items-center gap-2">
+                  <Search size={20} /> Search
+                </Link>
+              </Button>
             </>
           )}
           {user ? (
             <Button
               variant="outline"
-              className="w-full flex items-center gap-2"
+              className="w-full flex items-center gap-2 cursor-pointer"
               onClick={handleLogout}
             >
               <LogOut size={18} /> Logout
@@ -148,14 +173,14 @@ const Navbar = () => {
             <>
               <Button
                 variant="outline"
-                className="w-full flex items-center gap-2"
+                className="w-full flex items-center gap-2 cursor-pointer"
                 onClick={() => navigate("/login")}
               >
                 <LogIn size={18} /> Log In
               </Button>
               <Button
                 variant="default"
-                className="w-full flex items-center gap-2"
+                className="w-full flex items-center gap-2 cursor-pointer"
                 onClick={() => navigate("/signup")}
               >
                 <UserPlus size={18} /> Sign Up
