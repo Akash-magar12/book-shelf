@@ -137,6 +137,7 @@ const Login = () => {
                 id="password"
                 type={showPassword ? "text" : "password"}
                 required
+                placeholder="******"
                 onChange={handleChange}
                 className="mt-2 pr-10"
               />

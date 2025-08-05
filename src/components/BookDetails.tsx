@@ -25,6 +25,7 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
+import BackButton from "./BackButton";
 
 // 🧾 Define Book interface
 interface Book {
@@ -77,6 +78,7 @@ const BookDetails = () => {
 
   useEffect(() => {
     fetchBookDetails();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleCart = async (book: Book) => {
@@ -155,6 +157,7 @@ const BookDetails = () => {
 
   return (
     <div className="max-w-4xl mx-auto mt-10 px-4">
+      <BackButton />
       <Card className="shadow-lg">
         <CardHeader className="flex flex-col sm:flex-row gap-6 items-center sm:items-start">
           <img

@@ -160,9 +160,7 @@ const Signup = () => {
 
         navigate("/");
       } else {
-        toast.error(
-          "This email is already used with another login method."
-        );
+        toast.error("This email is already used with another login method.");
       }
     } catch (error) {
       console.log(error); // TODO: Handle error (like email exists with different method)
@@ -230,6 +228,7 @@ const Signup = () => {
                 required
                 value={form.password}
                 className="pr-10"
+                placeholder="******"
                 onChange={handleChange}
               />
 

@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import BackButton from "./BackButton";
 
 interface CartItem {
   id: string;
@@ -164,7 +165,9 @@ const AddToCart = () => {
   }
 
   return (
-    <div className="p-6 bg-white min-h-screen">
+    <div className="p-6 lg:px-20 bg-white min-h-screen">
+      <BackButton />
+
       <h2 className="text-2xl font-semibold mb-6 text-gray-900">Your Cart</h2>
 
       {cartItems.length === 0 ? (
